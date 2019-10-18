@@ -39,7 +39,6 @@
 static char blkparse_version[] = "1.2.0";
 
 // Customizations
-static unsigned int process_id;
 static int mq;
 
 struct skip_info {
@@ -235,12 +234,6 @@ static struct option l_opts[] = {
 		.has_arg = no_argument,
 		.flag = NULL,
 		.val = 'V'
-	},
-	{
-		.name = "process-id",
-		.has_arg = required_argument,
-		.flag = NULL,
-		.val = 'p'
 	},
 	{
 		.name = NULL,
@@ -1571,9 +1564,6 @@ static void dump_trace_fs(struct blk_io_trace *t, struct per_dev_info *pdi,
 	int w = (t->action & BLK_TC_ACT(BLK_TC_WRITE)) != 0;
 	int act = t->action & 0xffff;
 
-	//if(!w || t->pid != process_id) return;
-	if(t->pid != process_id) return;
-
 	char buf[128];
 
 	switch (act) {
@@ -1662,7 +1652,7 @@ static void dump_trace(struct blk_io_trace *t, struct per_cpu_info *pci,
 		       struct per_dev_info *pdi)
 {
 	if (text_output) {
-		if (t->pid == process_id && t->action == BLK_TN_MESSAGE)
+		if (t->action == BLK_TN_MESSAGE)
 			handle_notify(t);
 		else if (t->action & BLK_TC_ACT(BLK_TC_PC))
 			dump_trace_pc(t, pdi, pci);
@@ -2890,7 +2880,7 @@ static int get_program_sort_event(const char *str)
 	return 0;
 }
 
-#define S_OPTS  "a:A:b:D:d:f:F:hi:o:OqsS:tw:vVM:p:"
+#define S_OPTS  "a:A:b:D:d:f:F:hi:o:OqsS:tw:vVM"
 static char usage_str[] =    "\n\n" \
 	"-i <file>           | --input=<file>\n" \
 	"[ -a <action field> | --act-mask=<action field> ]\n" \
@@ -3032,10 +3022,6 @@ int main(int argc, char *argv[])
 			break;
 		case 'M':
 			bin_output_msgs = 0;
-			break;
-		case 'p':
-			process_id = atoi(optarg);
-			printf("Filtering by pid: %i", process_id);
 			break;
 		default:
 			usage(argv[0]);
