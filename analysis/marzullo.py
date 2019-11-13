@@ -6,10 +6,14 @@
 import math
 import time
 import cProfile
+import pstats
+import sys
 
 from cache import ItemsetCache
+from cache import IntervalCache
 from stream import StreamProvider
 from tracer import Tracer
+from itree import Interval
 
 # Benchmarking variables
 start = 0.0
@@ -21,7 +25,6 @@ def pair_map(x, y):
     if x > y:
         x,y = y,x
     return (x * x + x + y) if (x >= y) else (y * y + x)
-
 
 def pair_unmap(z):
     flooredRoot = math.floor(math.sqrt(z))
@@ -60,7 +63,7 @@ def scan(filename, threshold, windowsize):
     transactions = parse(filename, windowsize)
     frequency = {}
 
-    cache = ItemsetCache(5)
+    cache = ItemsetCache(100, 10)
 
     # First pass
     for transaction in transactions:
@@ -134,9 +137,6 @@ def marzullo_static(filename, threshold, windowsize):
 
     return cache
 
-#cProfile.run('marzullo("web1m_100000.txt", 10, 100000)')
-#result = marzullo("web1m_100000.txt", 10, 100000)
-
 def marzullo_stream(threshold):
     global start
     global end
@@ -144,37 +144,40 @@ def marzullo_stream(threshold):
     start = time.perf_counter()
 
     # Initialize our cache
-    cache = ItemsetCache(300000, threshold)
+    cache = IntervalCache(1000000, threshold)
 
     trace = Tracer()
 
-    def callback(transaction):
-        # Add all possible pairs to the cache
-        for i in range(len(transaction)):
-            for j in range(i + 1, len(transaction)):
-                cache.add(pair_map(transaction[i], transaction[j]))
-
-
-    trace.start(callback)
+    def generateTransaction(min, max):
+        cache.add(min, max)
+        
+    trace.start(generateTransaction)
 
     end = time.perf_counter()
 
     return cache
 
-marzullo_stream(50)
+profiler = cProfile.Profile()
+profiler.enable()
 
-'''
-print("Frequent Items:")
-for item, info in result.frequentItems.items():
-    print("Item: " + str(pair_unmap(item)) + " Support: " + str(info[1]))
+result = marzullo_stream(10)
 
-print("Items in main cache:")
-for item, info in result.items.items():
-    if info[1] >= 10:
-        print("Item: " + str(pair_unmap(item)) + " Support: " + str(info[1]))
+profiler.disable()
+pstats.Stats(profiler, stream=sys.stdout).sort_stats('cumulative').print_stats()
+
+print("Intervals in tree")
+for i in result.tree.rbTree:
+    print(i.minimum, i.maximum)
+
+print("Counts")
+for k,v in result.lru.items():
+    if v < 2:
+        continue
+    print(k + ": " + str(v))
 
 print("Elapsed time: " + str(end-start))
+print(len(result.lru.items()))
 
-stream = StreamProvider()
-stream.generateStreams(result)
-print(stream.stream)'''
+#stream = StreamProvider()
+#stream.generateStreams(result)
+#print(stream.stream)
