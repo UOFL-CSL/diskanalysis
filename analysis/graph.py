@@ -65,5 +65,4 @@ class Graph:
         for k, v in self.lists.items():
             output += str(k) + " " + str(v) + "\n"
 
-        return output
-
+            return output

@@ -1,7 +1,8 @@
 import time
 from collections import deque
 from collections import OrderedDict
-
+from itree import Interval
+from itree import IntervalTree
 
 class ItemsetCache:
     # Oldest item cache
@@ -26,13 +27,14 @@ class ItemsetCache:
         # If the cache is full, remove the item based on the method
         if self.method == 0:
             if len(self.lru) == self.size:
-                itemName, _ = self.lru.popitem(last=False)
+                for i in range(10000):
+                    itemName, _ = self.lru.popitem(last=False)
 
-                # If the support is greater than the minimum, add it to the frequent item set
-                if self.items[itemName][1] >= self.minsupport:
-                    self.frequentItems[itemName] = self.items[itemName]
+                    # If the support is greater than the minimum, add it to the frequent item set
+                    if self.items[itemName][1] >= self.minsupport:
+                        self.frequentItems[itemName] = self.items[itemName]
 
-                del self.items[itemName]
+                    del self.items[itemName]
 
         if self.method == 1:
             if len(self.queue) == self.size:
@@ -63,4 +65,24 @@ class ItemsetCache:
         self.queue = []
         self.items = {}
 
+class IntervalCache:
+    tree = IntervalTree()
+    lru = OrderedDict()
 
+    frequentItems = {}
+
+    def __init__(self, size, threshold):
+        self.size = size
+        self.threshold = threshold
+
+    def add(self, min, max):
+        self.tree.insert(Interval(min, max))
+
+        key = str(min) + " " + str(max)
+
+        if key not in self.lru:
+            self.lru[key] = 1
+        else:
+            value = self.lru[key]
+            del self.lru[key]
+            self.lru[key] = value + 1
