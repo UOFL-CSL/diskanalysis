@@ -1,5 +1,6 @@
 use std::io::Write;
 use std::convert::TryInto;
+use rand::Rng;
 
 // Magic value passed with the ioctl - first 2 bytes are the magic, last two are the version number
 const MAGIC: u32 = 0x65617407;
@@ -38,23 +39,22 @@ struct replay_configuration {
     end_lba: u64,
     block_sizes: Vec<u32>,
     repeat_lbas: Vec<u64>,
-    freq: f32,
-    pid: u32
+    freq: f32
 }
 
 unsafe fn to_u8_slice<T: Sized>(obj: &T) -> &[u8] {
     std::slice::from_raw_parts((obj as *const T) as *const u8, std::mem::size_of::<T>())
 }
 
-fn create_trace(seq: u32, time: u64, lba: u64, end_lba: u64, pid: u32) -> blk_io_trace {
+fn create_trace(seq: u32, time: u64, lba: u64) -> blk_io_trace {
     let mut trace: blk_io_trace = { Default::default() };
     trace.magic = MAGIC;
     trace.dev = BLKDEV;
     trace.act = TRACE_TYPE_WRITE | TRACE_TYPE_QUEUE;
     trace.pid = 0xFF;
 
-    trace.sector = 0;
-    trace.bytes = 16 << 10; // ((end_lba-lba) << 9).try_into().unwrap();
+    trace.sector = lba;
+    trace.bytes = 4 << 10; 
 
     trace.seq = seq;
     trace.time = time;
@@ -81,8 +81,26 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
     let mut seq = 0;
     let mut time = 0; // Time is stored in ns
 
+    let mut random_data = Vec::<u64>::with_capacity(config.size.try_into().unwrap());
+    let mut generator = rand::thread_rng();
+
+    // Generate random sectors
     for _n in 0..config.size {
-        traces.push(create_trace(seq, time, config.start_lba, config.end_lba, config.pid));
+        random_data.push(generator.gen_range(config.start_lba, config.end_lba));
+    }
+
+    // Generate traces
+    for n in 0..config.size {
+        let mut sector = random_data[n as usize];
+        let repeat: f32 = generator.gen();
+
+        if repeat < config.freq {
+            sector = config.repeat_lbas[0 as usize];
+        }
+
+        traces.push(create_trace(seq, time, sector));
+
+        println!("{}", sector);
         
         seq += 1;
         time += 1000000000;
@@ -92,7 +110,13 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
 }
 
 fn main() {
-    let config = replay_configuration { size: 1, start_lba: 1, end_lba: 16, block_sizes: vec![512], repeat_lbas: vec![], pid: 255, freq: 0.1 };
+    let config = replay_configuration { size: 10, 
+        start_lba: 2048, 
+        end_lba: 20973567, 
+        block_sizes: vec![512], 
+        repeat_lbas: vec![200],
+        freq: 0.1 };
+
     let traces = generate_traces(&config);
 
     let _ret = write_traces(&traces);
