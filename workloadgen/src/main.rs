@@ -1,6 +1,12 @@
+#![allow(dead_code)]
+
 use std::io::Write;
 use std::convert::TryInto;
 use rand::Rng;
+use clap::{Arg, App};
+
+mod util;
+use util::convert_to_int;
 
 // Magic value passed with the ioctl - first 2 bytes are the magic, last two are the version number
 const MAGIC: u32 = 0x65617407;
@@ -68,7 +74,7 @@ fn write_traces(traces: &Vec<blk_io_trace>) -> std::io::Result<()> {
 
     for trace in traces.iter() {
         let bytes: &[u8] = unsafe { to_u8_slice(trace) };
-        println!("{:x?}", bytes);
+        //println!("{:x?}", bytes);
         buf.write(bytes)?;
     }
 
@@ -84,9 +90,9 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
     let mut random_data = Vec::<u64>::with_capacity(config.size.try_into().unwrap());
     let mut generator = rand::thread_rng();
 
-    // Generate random sectors
+    // Generate random sectors based on the size of the block device
     for _n in 0..config.size {
-        random_data.push(generator.gen_range(config.start_lba, config.end_lba));
+        random_data.push(generator.gen_range(0, config.end_lba-config.start_lba));
     }
 
     // Generate traces
@@ -110,14 +116,54 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
 }
 
 fn main() {
-    let config = replay_configuration { size: 10, 
+    let matches = App::new("Fio Workload Generator")
+                        .version("1.0")
+                        .arg(Arg::with_name("size")
+                            .short("s")
+                            .help("Sets the size of the workload")
+                            .takes_value(true)
+                            .required(true))
+                        .arg(Arg::from_usage("[iosize] 'Sets the size of the IO operations in KB'")
+                            .short("i")
+                            .takes_value(true)
+                            .default_value("4")
+                            .required(true))
+                        .arg(Arg::from_usage("[repeated_lbas] 'Specifies the LBAs to be repeated; comma delimited'")
+                            .short("l")
+                            .takes_value(true)
+                            .required(true))
+                        .arg(Arg::from_usage("[repeat_frequency] 'Sets the probability of a block repeat'")
+                            .short("f")
+                            .required_unless("repeat_temporal")
+                            .takes_value(true))
+                        .arg(Arg::from_usage("[repeat_temporal] 'Sets the distance of a block repeat")
+                            .short("t")
+                            .takes_value(true))
+                        .get_matches();
+
+    let size = convert_to_int::<u32>(matches.value_of("size"));
+    let blocksize = vec![convert_to_int::<u32>(matches.value_of("iosize"))];
+    let mut repeat_frequency: f32 = 0.0;
+    let mut repeat_temporal: u32 = 0;
+
+    if matches.is_present("repeat_temporal") {
+        repeat_temporal = convert_to_int::<u32>(matches.value_of("repeat_temporal"));
+    } else {
+        repeat_frequency = convert_to_int::<f32>(matches.value_of("repeat_frequency"));
+    }
+
+    let config = replay_configuration { size: size, 
         start_lba: 2048, 
         end_lba: 20973567, 
-        block_sizes: vec![512], 
+        block_sizes: blocksize, 
         repeat_lbas: vec![200],
-        freq: 0.1 };
+        freq: repeat_frequency };
+
+    println!("Generating workload...");
 
     let traces = generate_traces(&config);
 
     let _ret = write_traces(&traces);
+
+    println!("Wrote workload to replay.bin");
 }
