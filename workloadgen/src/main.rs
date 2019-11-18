@@ -41,8 +41,7 @@ struct blk_io_trace {
 #[allow(non_camel_case_types)]
 struct replay_configuration {
     size: u32,
-    start_lba: u64,
-    end_lba: u64,
+    range: u64,
     block_sizes: Vec<u32>,
     repeat_lbas: Vec<u64>,
     freq: f32
@@ -92,8 +91,11 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
 
     // Generate random sectors based on the size of the block device
     for _n in 0..config.size {
-        random_data.push(generator.gen_range(0, config.end_lba-config.start_lba));
+        random_data.push(generator.gen_range(0, config.range));
     }
+
+    let mut cur_index = 0;
+    let lba_index = config.repeat_lbas.len()-1;
 
     // Generate traces
     for n in 0..config.size {
@@ -101,12 +103,18 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
         let repeat: f32 = generator.gen();
 
         if repeat < config.freq {
-            sector = config.repeat_lbas[0 as usize];
+            sector = config.repeat_lbas[cur_index];
+
+            if cur_index < lba_index {
+                cur_index += 1 
+            } else {
+                cur_index = 0
+            }
         }
 
         traces.push(create_trace(seq, time, sector));
 
-        println!("{}", sector);
+        //println!("{}", sector);
         
         seq += 1;
         time += 1000000000;
@@ -123,12 +131,16 @@ fn main() {
                             .help("Sets the size of the workload")
                             .takes_value(true)
                             .required(true))
+                        .arg(Arg::from_usage("[range] 'Specifies the range of sectors to generate operations'")
+                            .short("r")
+                            .takes_value(true)
+                            .required(true))
                         .arg(Arg::from_usage("[iosize] 'Sets the size of the IO operations in KB'")
                             .short("i")
                             .takes_value(true)
                             .default_value("4")
                             .required(true))
-                        .arg(Arg::from_usage("[repeated_lbas] 'Specifies the LBAs to be repeated; comma delimited'")
+                        .arg(Arg::from_usage("[repeated_lbas] 'Specifies the LBA offsets to be repeated; comma delimited'")
                             .short("l")
                             .takes_value(true)
                             .required(true))
@@ -152,11 +164,17 @@ fn main() {
         repeat_frequency = convert_to_int::<f32>(matches.value_of("repeat_frequency"));
     }
 
+    let repeat_lbas: Vec<u64> = matches.value_of("repeated_lbas").unwrap().split(',').collect::<Vec<_>>().into_iter()
+                                            .map(|x| {
+                                                x.parse::<u64>().unwrap()
+                                            }).collect();
+
+    let range = convert_to_int::<u64>(matches.value_of("range"));
+
     let config = replay_configuration { size: size, 
-        start_lba: 2048, 
-        end_lba: 20973567, 
+        range: range,
         block_sizes: blocksize, 
-        repeat_lbas: vec![200],
+        repeat_lbas: repeat_lbas,
         freq: repeat_frequency };
 
     println!("Generating workload...");
