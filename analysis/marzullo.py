@@ -1,5 +1,5 @@
 #####################################
-# Marzullo's Sliding Window Algorithm
+# Block IO Data Mining Algorithms
 # Computer Systems Laboratory
 # University of Louisville
 #####################################

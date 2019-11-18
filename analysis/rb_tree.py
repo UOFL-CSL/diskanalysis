@@ -71,7 +71,7 @@ class RedBlackTree:
         if not self.root:
             self.root = Node(value, color=BLACK, parent=None, left=self.NIL_LEAF, right=self.NIL_LEAF)
             self.count += 1
-            return
+            return self.root
         parent, node_dir = self._find_parent(value)
         if node_dir is None:
             return  # value is in the tree
@@ -84,12 +84,13 @@ class RedBlackTree:
         self._try_rebalance(new_node)
         self.count += 1
 
-    def remove(self, value):
+        return new_node
+
+    def remove(self, node_to_remove):
         """
         Try to get a node with 0 or 1 children.
         Either the node we're given has 0 or 1 children or we get its successor.
         """
-        node_to_remove = self.find_node(value)
         if node_to_remove is None:  # node is not in the tree
             return
         if node_to_remove.get_children_count() == 2:

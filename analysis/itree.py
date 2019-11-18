@@ -10,10 +10,13 @@ class Interval:
         if other is None:
             return False
             
-        return self.minimum == other.minimum
+        return self.minimum == other.minimum and self.maximum == other.maximum
 
     def __lt__(self, other):
-        return self.minimum < other.minimum
+        if self.minimum != other.minimum:
+            return self.minimum < other.minimum
+
+        return self.maximum < other.maximum
     
     def __le__(self, other):
         return self.minimum <= other.minimum
@@ -22,7 +25,10 @@ class Interval:
         return self.minimum > other.minimum
 
     def __ge__(self, other):
-        return self.maximum >= other.maximum
+        return self.minimum >= other.minimum
+
+    def __str__(self):
+        return str(self.minimum) + ":" + str(self.maximum)
 
 class IntervalTree:
     rbTree = RedBlackTree()
@@ -31,4 +37,15 @@ class IntervalTree:
         pass
 
     def insert(self, value):
-        self.rbTree.add(value)
+        return self.rbTree.add(value)
+
+    def overlapping(self, i1, i2):
+        return i1.minimum <= i2.maximum and i1.maximum >= i2.minimum
+
+    # Return all overlapping intervals
+    def find_overlap(self, value: Interval):
+        # If the interval is less than root.min, traverse left, otherwise right
+        pass
+
+
+
