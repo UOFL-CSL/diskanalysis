@@ -8,6 +8,9 @@ use clap::{Arg, App};
 mod util;
 use util::convert_to_int;
 
+mod parser;
+use parser::{ parse, RepeatLbas };
+
 // Magic value passed with the ioctl - first 2 bytes are the magic, last two are the version number
 const MAGIC: u32 = 0x65617407;
 
@@ -143,13 +146,17 @@ fn main() {
                         .arg(Arg::from_usage("[repeated_lbas] 'Specifies the LBA offsets to be repeated; comma delimited'")
                             .short("l")
                             .takes_value(true)
-                            .required(true))
+                            .required_unless("repeat_file"))
                         .arg(Arg::from_usage("[repeat_frequency] 'Sets the probability of a block repeat'")
                             .short("f")
                             .required_unless("repeat_temporal")
                             .takes_value(true))
-                        .arg(Arg::from_usage("[repeat_temporal] 'Sets the distance of a block repeat")
+                        .arg(Arg::from_usage("[repeat_temporal] 'Sets the distance of a block repeat'")
                             .short("t")
+                            .required_unless("repeat_file")
+                            .takes_value(true))
+                        .arg(Arg::from_usage("[repeat_file] 'Sets the file to read to configure repeated LBAs")
+                            .short("f")
                             .takes_value(true))
                         .get_matches();
 
@@ -162,6 +169,11 @@ fn main() {
         repeat_temporal = convert_to_int::<u32>(matches.value_of("repeat_temporal"));
     } else {
         repeat_frequency = convert_to_int::<f32>(matches.value_of("repeat_frequency"));
+    }
+
+    let mut parsed_file: &RepeatLbas;
+    if matches.is_present("repeat_file") {
+        parsed_file = parse(matches.value_of("repeat_file").unwrap());
     }
 
     let repeat_lbas: Vec<u64> = matches.value_of("repeated_lbas").unwrap().split(',').collect::<Vec<_>>().into_iter()
