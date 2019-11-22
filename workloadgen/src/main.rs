@@ -146,17 +146,17 @@ fn main() {
                         .arg(Arg::from_usage("[repeated_lbas] 'Specifies the LBA offsets to be repeated; comma delimited'")
                             .short("l")
                             .takes_value(true)
-                            .required_unless("repeat_file"))
+                            .required_unless("repeat_config"))
                         .arg(Arg::from_usage("[repeat_frequency] 'Sets the probability of a block repeat'")
                             .short("f")
-                            .required_unless("repeat_temporal")
+                            .required_unless("repeat_config")
                             .takes_value(true))
                         .arg(Arg::from_usage("[repeat_temporal] 'Sets the distance of a block repeat'")
                             .short("t")
-                            .required_unless("repeat_file")
+                            .required_unless_one(&["repeat_config","repeat_frequency"])
                             .takes_value(true))
-                        .arg(Arg::from_usage("[repeat_file] 'Sets the file to read to configure repeated LBAs")
-                            .short("f")
+                        .arg(Arg::from_usage("[repeat_config] 'Sets the file to read to configure repeated LBAs")
+                            .short("c")
                             .takes_value(true))
                         .get_matches();
 
@@ -167,19 +167,25 @@ fn main() {
 
     if matches.is_present("repeat_temporal") {
         repeat_temporal = convert_to_int::<u32>(matches.value_of("repeat_temporal"));
-    } else {
+    }
+
+    if matches.is_present("repeat_frequency") {
         repeat_frequency = convert_to_int::<f32>(matches.value_of("repeat_frequency"));
     }
 
-    let mut parsed_file: &RepeatLbas;
-    if matches.is_present("repeat_file") {
-        parsed_file = parse(matches.value_of("repeat_file").unwrap());
+    let mut parsed_file: RepeatLbas;
+    if matches.is_present("repeat_config") {
+        parsed_file = parse(matches.value_of("repeat_config").unwrap());
     }
 
-    let repeat_lbas: Vec<u64> = matches.value_of("repeated_lbas").unwrap().split(',').collect::<Vec<_>>().into_iter()
+    let mut repeat_lbas: Vec<u64> = vec![];
+    
+    if matches.is_present("repeated_lbas") {
+        repeat_lbas = matches.value_of("repeated_lbas").unwrap().split(',').collect::<Vec<_>>().into_iter()
                                             .map(|x| {
                                                 x.parse::<u64>().unwrap()
                                             }).collect();
+    }
 
     let range = convert_to_int::<u64>(matches.value_of("range"));
 
@@ -191,9 +197,9 @@ fn main() {
 
     println!("Generating workload...");
 
-    let traces = generate_traces(&config);
+    //let traces = generate_traces(&config);
 
-    let _ret = write_traces(&traces);
+    //let _ret = write_traces(&traces);
 
     println!("Wrote workload to replay.bin");
 }
