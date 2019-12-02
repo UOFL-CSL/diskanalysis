@@ -46,8 +46,7 @@ struct replay_configuration {
     size: u32,
     range: u64,
     block_sizes: Vec<u32>,
-    repeat_lbas: Vec<u64>,
-    freq: f32
+    repeat_lbas: RepeatLbas,
 }
 
 unsafe fn to_u8_slice<T: Sized>(obj: &T) -> &[u8] {
@@ -76,7 +75,7 @@ fn write_traces(traces: &Vec<blk_io_trace>) -> std::io::Result<()> {
 
     for trace in traces.iter() {
         let bytes: &[u8] = unsafe { to_u8_slice(trace) };
-        //println!("{:x?}", bytes);
+        println!("{:?}", trace.sector);
         buf.write(bytes)?;
     }
 
@@ -97,24 +96,41 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
         random_data.push(generator.gen_range(0, config.range));
     }
 
-    let mut cur_index = 0;
-    let lba_index = config.repeat_lbas.len()-1;
-
     // Generate traces
     for n in 0..config.size {
         let mut sector = random_data[n as usize];
-        let repeat: f32 = generator.gen();
+        let probability: f32 = generator.gen();
 
-        if repeat < config.freq {
-            sector = config.repeat_lbas[cur_index];
+        // Create specified sequential writes
+        // Only one of these can occur per iteration
+        for lba_list in &config.repeat_lbas.sequential {
+            let mut done = false;
 
-            if cur_index < lba_index {
-                cur_index += 1 
-            } else {
-                cur_index = 0
+            for lba in lba_list {
+                if lba.probability < probability {
+                    break;
+                }
+ 
+                traces.push(create_trace(seq, time, lba.value));
+                done = true;
+            }
+
+            if done {
+                break;
             }
         }
 
+        // Create a random write 
+        for lba in &config.repeat_lbas.random {
+            if lba.probability < probability {
+                continue;
+            } 
+            
+            traces.push(create_trace(seq, time, lba.value));
+            break;
+        }
+
+        // Create the default random write
         traces.push(create_trace(seq, time, sector));
 
         //println!("{}", sector);
@@ -143,18 +159,6 @@ fn main() {
                             .takes_value(true)
                             .default_value("4")
                             .required(true))
-                        .arg(Arg::from_usage("[repeated_lbas] 'Specifies the LBA offsets to be repeated; comma delimited'")
-                            .short("l")
-                            .takes_value(true)
-                            .required_unless("repeat_config"))
-                        .arg(Arg::from_usage("[repeat_frequency] 'Sets the probability of a block repeat'")
-                            .short("f")
-                            .required_unless("repeat_config")
-                            .takes_value(true))
-                        .arg(Arg::from_usage("[repeat_temporal] 'Sets the distance of a block repeat'")
-                            .short("t")
-                            .required_unless_one(&["repeat_config","repeat_frequency"])
-                            .takes_value(true))
                         .arg(Arg::from_usage("[repeat_config] 'Sets the file to read to configure repeated LBAs")
                             .short("c")
                             .takes_value(true))
@@ -162,29 +166,10 @@ fn main() {
 
     let size = convert_to_int::<u32>(matches.value_of("size"));
     let blocksize = vec![convert_to_int::<u32>(matches.value_of("iosize"))];
-    let mut repeat_frequency: f32 = 0.0;
-    let mut repeat_temporal: u32 = 0;
 
-    if matches.is_present("repeat_temporal") {
-        repeat_temporal = convert_to_int::<u32>(matches.value_of("repeat_temporal"));
-    }
-
-    if matches.is_present("repeat_frequency") {
-        repeat_frequency = convert_to_int::<f32>(matches.value_of("repeat_frequency"));
-    }
-
-    let mut parsed_file: RepeatLbas;
+    let mut repeat_lbas: RepeatLbas = Default::default();
     if matches.is_present("repeat_config") {
-        parsed_file = parse(matches.value_of("repeat_config").unwrap());
-    }
-
-    let mut repeat_lbas: Vec<u64> = vec![];
-    
-    if matches.is_present("repeated_lbas") {
-        repeat_lbas = matches.value_of("repeated_lbas").unwrap().split(',').collect::<Vec<_>>().into_iter()
-                                            .map(|x| {
-                                                x.parse::<u64>().unwrap()
-                                            }).collect();
+        repeat_lbas = parse(matches.value_of("repeat_config").unwrap());
     }
 
     let range = convert_to_int::<u64>(matches.value_of("range"));
@@ -192,14 +177,14 @@ fn main() {
     let config = replay_configuration { size: size, 
         range: range,
         block_sizes: blocksize, 
-        repeat_lbas: repeat_lbas,
-        freq: repeat_frequency };
+        repeat_lbas: repeat_lbas 
+    };
 
     println!("Generating workload...");
 
-    //let traces = generate_traces(&config);
+    let traces = generate_traces(&config);
 
-    //let _ret = write_traces(&traces);
+    let _ret = write_traces(&traces);
 
     println!("Wrote workload to replay.bin");
 }
