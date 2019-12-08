@@ -1,6 +1,7 @@
 from tracer import Tracer
 from itree import IntervalTree, Interval
-from cache import IntervalCache
+from cache import IntervalCache, ARC
+import random
 
 def bufferSize(): 
     tracer = Tracer()
@@ -24,8 +25,6 @@ def itreeTest():
     for node in tree.rbTree:
         print(node)
 
-itreeTest()
-
 def iTreeCacheTest():
     cache = IntervalCache(3, 5)
 
@@ -40,3 +39,19 @@ def iTreeCacheTest():
     print(cache.lru)
     print([str(x) for x in cache.tree.rbTree])
 
+def arcTest():
+    cache = ARC(10)
+
+    cache.add(1)
+    cache.add(1)
+    cache.add(2)
+    
+    data = [random.randint(0, 100) for x in range(1000)]
+
+    for d in data:
+        cache.add(d)
+
+    print(cache.t1)
+    print(cache.t2)
+
+arcTest()

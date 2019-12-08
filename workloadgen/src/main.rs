@@ -75,7 +75,7 @@ fn write_traces(traces: &Vec<blk_io_trace>) -> std::io::Result<()> {
 
     for trace in traces.iter() {
         let bytes: &[u8] = unsafe { to_u8_slice(trace) };
-        println!("{:?}", trace.sector);
+        //println!("{:?}", trace.sector);
         buf.write(bytes)?;
     }
 
@@ -108,14 +108,16 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
 
             for lba in lba_list {
                 if lba.probability < probability {
-                    break;
+                    continue;
                 }
  
                 traces.push(create_trace(seq, time, lba.value));
+                seq += 1;
                 done = true;
             }
 
             if done {
+                println!("Sequential write");
                 break;
             }
         }
@@ -127,6 +129,7 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
             } 
             
             traces.push(create_trace(seq, time, lba.value));
+            seq += 1;
             break;
         }
 
@@ -138,6 +141,8 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
         seq += 1;
         time += 1000000000;
     }
+
+    println!("Created {} writes.", seq);
 
     traces
 }
@@ -161,7 +166,8 @@ fn main() {
                             .required(true))
                         .arg(Arg::from_usage("[repeat_config] 'Sets the file to read to configure repeated LBAs")
                             .short("c")
-                            .takes_value(true))
+                            .takes_value(true)
+                            .default_value("lbas.txt"))
                         .get_matches();
 
     let size = convert_to_int::<u32>(matches.value_of("size"));

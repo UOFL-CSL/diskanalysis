@@ -107,3 +107,108 @@ class IntervalCache:
         key, value = self.lru.popitem(last=False)
 
         self.tree.rbTree.remove(value[1])
+
+# Adaptive Replacement Cache
+# T1 = recency
+# T2 = frequency (min 2 support)
+class ARC():
+    # T1 and T2, LRU caches
+    t1 = OrderedDict()
+    t2 = OrderedDict()
+
+    # B1 and B2, ghost/eviction caches
+    b1 = OrderedDict()
+    b2 = OrderedDict()
+
+    # target size
+    p = 0
+
+    # C is the fixed size portion
+    def __init__(self, c):
+        self.c = c
+
+    def adapt(self, b1miss):
+        sigma = 0
+        
+        if b1miss:
+            if len(self.b1) >= len(self.b2):
+                sigma = 1
+            else:
+                sigma = int(len(self.b2)/len(self.b1))
+
+            self.p = min(self.p + sigma, self.c)
+        else:
+            if len(self.b2) >= len(self.b1):
+                sigma = 1
+            else:
+                sigma = int(len(self.b1)/len(self.b2))
+
+            self.p = max(self.p - sigma, 0)
+
+    # Moves LRU item from the t1/t2 cache to b1/b2
+    def replace(self, item):
+        t1len = len(self.t1)
+        
+        if t1len > 0 and (t1len > self.p or (item in self.b2 and t1len == self.p)):
+            k,v = self.t1.popitem(last=False)
+
+            self.b1[k] = v
+        else:
+            k,v = self.t2.popitem(last=False)
+
+            self.b2[k] = v
+
+    def add(self, item):
+        # Case 1, cache hit
+        # Move to t2
+        if item in self.t1:
+            del self.t1[item]
+            self.t2[item] = time.time()
+
+            return
+
+        if item in self.t2:
+            del self.t2[item]
+            self.t2[item] = time.time()
+
+            return
+
+        # Case 2 partial miss
+        # B1
+        if item in self.b1:
+            self.adapt(True)
+            self.replace(item)
+
+            self.t2[item] = self.b1[item]
+            del self.b1[item]
+
+            return
+
+        if item in self.b2:
+            self.adapt(False)
+            self.replace(item)
+
+            self.t2[item] = self.b2[item]
+            del self.b2[item]
+
+            return
+
+        # Case 3 complete miss
+        l1len = len(self.t1) + len(self.b1)
+        if l1len == self.c:
+            if len(self.t1) < self.c:
+                self.b1.popitem(last=False)
+
+                self.replace(item)
+            else:
+                self.t1.popitem(last=False)
+        if l1len < self.c:
+            totallen = l1len + len(self.t2) + len(self.b2)
+
+            if totallen >= self.c:
+                if totallen == 2*self.c:
+                    self.b2.popitem(last=False)
+
+                self.replace(item)
+
+        self.t1[item] = time.time()
