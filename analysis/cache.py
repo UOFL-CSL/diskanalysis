@@ -66,8 +66,6 @@ class ItemsetCache:
 class IntervalCache:
     # Tree is the L1 cache
     tree = IntervalTree()
-    # LRU to remove old items from the cache
-    lru = OrderedDict()
 
     # L2 cache: frequent items
     frequentItems = {}
@@ -79,11 +77,12 @@ class IntervalCache:
         self.size = size
         self.threshold = threshold
 
+        self.l1 = ARC(size)
+
     # TODO: check overlaps to update frequency on overlapping items
-    # implement ARC like solution to adapt the cache size
 
     def add(self, min, max):
-        # Update the LRU cache and the interval tree when an item is added 
+        # Update the L1 cache and the interval tree when an item is added 
         key = str(min) + " " + str(max)
 
         # Insert isn't needed if it is already in the tree
@@ -99,16 +98,14 @@ class IntervalCache:
 
             if value+1 > self.threshold:
                 self.frequentItems[key] = 1
-
-        if len(self.lru) > self.size:
-            self.purge()
  
     def purge(self):
-        key, value = self.lru.popitem(last=False)
 
-        self.tree.rbTree.remove(value[1])
+
+        self.tree.rbTree.remove()
 
 # Adaptive Replacement Cache
+# Modified to store support
 # T1 = recency
 # T2 = frequency (min 2 support)
 class ARC():
@@ -124,8 +121,9 @@ class ARC():
     p = 0
 
     # C is the fixed size portion
-    def __init__(self, c):
+    def __init__(self, c, evictCallback):
         self.c = c
+        self.evictCallback = evictCallback
 
     def adapt(self, b1miss):
         sigma = 0
@@ -162,14 +160,15 @@ class ARC():
         # Case 1, cache hit
         # Move to t2
         if item in self.t1:
+            self.t2[item] = self.t1[item]+1
             del self.t1[item]
-            self.t2[item] = time.time()
 
             return
 
         if item in self.t2:
+            support = self.t2[item]
             del self.t2[item]
-            self.t2[item] = time.time()
+            self.t2[item] = support+1
 
             return
 
@@ -211,4 +210,7 @@ class ARC():
 
                 self.replace(item)
 
-        self.t1[item] = time.time()
+        self.t1[item] = 1
+
+    def contains(self, item):
+        return (item in self.t1) or (item in self.t2) or (item in self.b1) or (item in self.b2)

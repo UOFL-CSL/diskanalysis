@@ -50,8 +50,7 @@ and instruction that have allowed the completion of this project. I would like t
 thank my family for always supporting me through my education and ensuring my 
 success; my mother, Kristen, whom has always shown me the way when I have been 
 lost, and my father, Peter, whom has inspired me to utilize my abilities to their
-whole potential. Finally, I thank my friends for their support and help to shape me 
-into a better person.
+whole potential. Finally, I thank my friends for their support, specifically Sadaf Fatima Ahmed for making me a better person.
 
 \blockofcontents
 
@@ -90,7 +89,6 @@ While the cache is running, a separate class generates a graph of all possible b
 When items are received by the algorithm from the named pipe, all possible block pairs are generated to be inserted in the L1 cache, which is an O($N^2$) operation. In our initial performance testing, this was found to be too slow to handle workloads such as large sequential reads in real time. Because of this lack of performance, more modifications were needed for a new algorithm.
 
 \subsection{Algorithm 2}
-Algorithm 2
 In this modified algorithm, the received write operations from the tracing component are stored as intervals instead of individual pairs. The primary data structure used to store these items is an interval tree, which is a modification of red-black tree that stores intervals instead of values in the leaves of the tree. This allows high performance throughput for IO operations that contain a large range of blocks, with the added complexity of handling and adapting overlapping operations on existing intervals within the red-black tree. In addition, to further improve both the performance of the cache and the accuracy of the results to track both frequency and temporal locality, the first level cache structure from the first algorithm is replaced with the ARC algorithm previously described. Once the support from the frequent LRU cache reaches the minimum threshold, the item is moved into the L2 frequent cache, which is also an interval tree. The eviction policy for the L2 cache is determined either by time passed or transactions processed.
 
 Once the frequent itemsets are queried by another application, the algorithm generates the correlated block pairs from the L2 cache. 
@@ -112,13 +110,7 @@ The accuracy of our results is evaluated based on a comparison to offline algori
 
 \bibliographystyle{plain}
 \begin{thebibliography}{99}
-\singlespace
-\bibitem{mills} {Mills, John W. and Mandel, Lazaro J.},
-``Cytoskeletal regulation of membrane transport events'',
-\emph{The FASEB Journal}, vol. 8, pp. 1161--1164, 1974.
-\bibitem{SIMIONSCU} {Simionescu, N. and Simionescu, M.}
-\emph{Endothelial Cell Biology in Health and Disease},
-Plenum Press, New York, 1988.
+
 \end{thebibliography}
 
 \end{document}
