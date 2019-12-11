@@ -160,7 +160,7 @@ def marzullo_stream(threshold):
 profiler = cProfile.Profile()
 profiler.enable()
 
-result = marzullo_stream(30)
+result = marzullo_stream(5)
 
 profiler.disable()
 pstats.Stats(profiler, stream=sys.stdout).sort_stats('cumulative').print_stats()
@@ -170,11 +170,11 @@ print("Elapsed time: " + str(end-start))
 # Output results to file
 output = open("items.txt", "w")
 
-output.write("Items in t2\n")
-for k,v in result.l1.t2.items():
-    output.write(str(v) + " " + str(k) + "\n")
+#output.write("Items in t2\n")
+#for k,v in result.l1.t2.items():
+#    output.write(str(v) + " " + str(k) + "\n")
 
-output.write("Frequent items\n")
+#output.write("Frequent items\n")
 for k,v in result.frequentItems.items():
     output.write(k + "\n")
 

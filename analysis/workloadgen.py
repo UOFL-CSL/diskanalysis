@@ -11,11 +11,15 @@ def generate_random_config(count, lbaRange, distribution):
     for i in range(count):
         lba = random.randint(0, lbaRange)
 
-        output.append(str(lba) + ";" + str(distribution))
+        output.append(str(lba) + ";" + f"{distribution:f}")
 
     return output
 
-randomLbas = generate_random_config(100, lbaRange, 0.01)
+randomLbas = generate_random_config(100, lbaRange, 0.00001)
+
+config = open("config.txt", "w")
 
 for l in randomLbas:
-    print(l)
+    config.write(l + "\n")
+
+config.close()
