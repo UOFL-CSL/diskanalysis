@@ -39,19 +39,41 @@ def iTreeCacheTest():
     print(cache.lru)
     print([str(x) for x in cache.tree.rbTree])
 
-def arcTest():
-    cache = ARC(10)
 
-    cache.add(1)
-    cache.add(1)
-    cache.add(2)
+def arcTest():
+    def evict(v):
+        print(v)
+
+    cache = ARC(10, evict)
+
+    cache.add(1, 0)
+    cache.add(1, 0)
+    cache.add(2, 0)
     
     data = [random.randint(0, 100) for x in range(1000)]
+    values = [0]*100
 
-    for d in data:
-        cache.add(d)
+    for d,v in zip(data, values):
+        cache.add(d,v)
 
     print(cache.t1)
     print(cache.t2)
 
-arcTest()
+#arcTest()
+
+def cacheTest():
+    cache = IntervalCache(10, 2)
+
+    cache.add(0,10)
+    cache.add(2,10)
+    cache.add(0,10)
+    cache.add(10,20)
+    cache.add(0,10)
+
+
+    print(len(cache.l1.t1))
+    print(len(cache.l1.t2))
+
+    print(cache.frequentItems)
+
+cacheTest()

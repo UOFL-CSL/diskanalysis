@@ -144,7 +144,7 @@ def marzullo_stream(threshold):
     start = time.perf_counter()
 
     # Initialize our cache
-    cache = IntervalCache(1000000, threshold)
+    cache = IntervalCache(100000, threshold)
 
     trace = Tracer()
 
@@ -160,23 +160,25 @@ def marzullo_stream(threshold):
 profiler = cProfile.Profile()
 profiler.enable()
 
-result = marzullo_stream(10)
+result = marzullo_stream(30)
 
 profiler.disable()
 pstats.Stats(profiler, stream=sys.stdout).sort_stats('cumulative').print_stats()
 
-print("Intervals in tree")
-for i in result.tree.rbTree:
-    print(i.minimum, i.maximum)
-
-print("Counts")
-for k,v in result.lru.items():
-    if v < 2:
-        continue
-    print(k + ": " + str(v))
-
 print("Elapsed time: " + str(end-start))
-print(len(result.lru.items()))
+
+# Output results to file
+output = open("items.txt", "w")
+
+output.write("Items in t2\n")
+for k,v in result.l1.t2.items():
+    output.write(str(v) + " " + str(k) + "\n")
+
+output.write("Frequent items\n")
+for k,v in result.frequentItems.items():
+    output.write(k + "\n")
+
+output.close()
 
 #stream = StreamProvider()
 #stream.generateStreams(result)

@@ -322,7 +322,9 @@ class RedBlackTree:
         sibling, direction = self._get_sibling(node)
         closer_node = sibling.right if direction == 'L' else sibling.left
         outer_node = sibling.left if direction == 'L' else sibling.right
-        if closer_node.color == RED and outer_node.color != RED and sibling.color == BLACK:
+        if closer_node.color == RED \
+            and outer_node.color != RED \
+            and sibling.color == BLACK:
             if direction == 'L':
                 self._left_rotation(node=None, parent=closer_node, grandfather=sibling)
             else:

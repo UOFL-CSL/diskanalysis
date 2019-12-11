@@ -77,35 +77,30 @@ class IntervalCache:
         self.size = size
         self.threshold = threshold
 
-        self.l1 = ARC(size)
+        self.l1 = ARC(size, self.evict)
+
+    def evict(self, node):
+        pass
+        #self.tree.rbTree.remove(node)
 
     # TODO: check overlaps to update frequency on overlapping items
-
     def add(self, min, max):
         # Update the L1 cache and the interval tree when an item is added 
         key = str(min) + " " + str(max)
 
-        # Insert isn't needed if it is already in the tree
-        if key not in self.lru:
-            # Save reference to the node to make deletions O(N)
-            node = self.tree.insert(Interval(min, max))
-            self.lru[key] = (1, node)
+        if not self.l1.contains(key):
+            #node = self.tree.insert(Interval(min, max))
+            self.l1.add(key, True)            
+        # Check the support if the item should be moved to the L2 cache
         else:
-            value = self.lru[key][0]
-            node = self.lru[key][1]
-            del self.lru[key]
-            self.lru[key] = (value+1, node)
+            self.l1.add(key, None)
 
-            if value+1 > self.threshold:
-                self.frequentItems[key] = 1
- 
-    def purge(self):
-
-
-        self.tree.rbTree.remove()
+            if key in self.l1.t2:
+                if self.l1.t2[key][0] > self.threshold:
+                    self.frequentItems[key] = time.time()
 
 # Adaptive Replacement Cache
-# Modified to store support
+# Modified to store support/node reference
 # T1 = recency
 # T2 = frequency (min 2 support)
 class ARC():
@@ -156,19 +151,21 @@ class ARC():
 
             self.b2[k] = v
 
-    def add(self, item):
+    def add(self, item, value):
         # Case 1, cache hit
         # Move to t2
         if item in self.t1:
-            self.t2[item] = self.t1[item]+1
+            self.t1[item][0] += 1
+            self.t2[item] = self.t1[item]
             del self.t1[item]
 
             return
 
         if item in self.t2:
-            support = self.t2[item]
+            value = self.t2[item]
+            value[0] += 1
             del self.t2[item]
-            self.t2[item] = support+1
+            self.t2[item] = value
 
             return
 
@@ -196,7 +193,8 @@ class ARC():
         l1len = len(self.t1) + len(self.b1)
         if l1len == self.c:
             if len(self.t1) < self.c:
-                self.b1.popitem(last=False)
+                k,v = self.b1.popitem(last=False)
+                self.evictCallback(v[1])
 
                 self.replace(item)
             else:
@@ -206,11 +204,12 @@ class ARC():
 
             if totallen >= self.c:
                 if totallen == 2*self.c:
-                    self.b2.popitem(last=False)
+                    k,v = self.b2.popitem(last=False)
+                    self.evictCallback(v[1])
 
                 self.replace(item)
 
-        self.t1[item] = 1
+        self.t1[item] = [1, value]
 
     def contains(self, item):
         return (item in self.t1) or (item in self.t2) or (item in self.b1) or (item in self.b2)

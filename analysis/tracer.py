@@ -9,10 +9,10 @@ class Tracer:
 
     # Calls the defined callback from the start method with the starting and ending LBA
     def generateTransaction(self, data, callback):
-        startLBA = int(data[0] / 512)
-        blocks = int(data[1] / 512)
+        startLBA = int(data[0])
+        blocks = int(data[1]/8)
 
-        print("Starting LBA: " + str(startLBA) + "; Blocks: " + str(blocks))
+        #print("Starting LBA: " + str(startLBA) + "; Blocks: " + str(blocks))
 
         callback(startLBA, startLBA+blocks)
 
