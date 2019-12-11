@@ -93,7 +93,10 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
 
     // Generate random sectors based on the size of the block device
     for _n in 0..config.size {
-        random_data.push(generator.gen_range(0, config.range));
+        let number = generator.gen_range(0, config.range);
+        random_data.push(number);
+
+        //println!("{:?}", number);
     }
 
     // Generate traces
@@ -139,7 +142,7 @@ fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
         //println!("{}", sector);
         
         seq += 1;
-        time += 1000000000;
+        time += 100;
     }
 
     println!("Created {} writes.", seq);
