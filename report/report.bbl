@@ -1,0 +1,50 @@
+\begin{thebibliography}{1}
+
+\bibitem{Li}
+Zhenmin Li, Zhifeng Chen, Sudarshan~M. Srinivasan, and Yuanyuan Zhou.
+\newblock C-miner: Mining block correlations in storage systems.
+\newblock In {\em Proceedings of the 3rd USENIX Conference on File and Storage
+  Technologies}, FAST'04, pages 13--13, Berkeley, CA, USA, 2004. USENIX
+  Association.
+
+\bibitem{borge}
+Christian Borgelt.
+\newblock Efficient implementations of apriori and eclat.
+\newblock In {\em Proc. 1st IEEE ICDM Workshop on Frequent Item Set Mining
+  Implementations (FIMI 2003, Melbourne, FL). CEUR Workshop Proceedings 90},
+  page~90, 2003.
+
+\bibitem{Shin}
+Se~Jung Shin, Dae~Su Lee, and Won~Suk Lee.
+\newblock Cp-tree: An adaptive synopsis structure for compressing frequent
+  itemsets over online data streams.
+\newblock {\em Information Sciences}, 278:559 -- 576, 2014.
+
+\bibitem{Megiddo}
+Nimrod Megiddo and Dharmendra~S. Modha.
+\newblock Arc: A self-tuning, low overhead replacement cache.
+\newblock In {\em Proceedings of the 2nd USENIX Conference on File and Storage
+  Technologies}, FAST '03, pages 115--130, Berkeley, CA, USA, 2003. USENIX
+  Association.
+
+\bibitem{vStream}
+Hwanjin Yong, Kisik Jeong, Joonwon Lee, and Jin-Soo Kim.
+\newblock vstream: Virtual stream management for multi-streamed ssds.
+\newblock In {\em 10th {USENIX} Workshop on Hot Topics in Storage and File
+  Systems (HotStorage 18)}, Boston, MA, July 2018. {USENIX} Association.
+
+\bibitem{streampc}
+Taejin Kim, Duwon Hong, Sangwook~Shane Hahn, Myoungjun Chun, Sungjin Lee,
+  Jooyoung Hwang, Jongyoul Lee, and Jihong Kim.
+\newblock Fully automatic stream management for multi-streamed ssds using
+  program contexts.
+\newblock In {\em 17th {USENIX} Conference on File and Storage Technologies
+  ({FAST} 19)}, pages 295--308, Boston, MA, February 2019. {USENIX}
+  Association.
+
+\bibitem{ladaptivereplace}
+Sai Huang, Qingsong Wei, Dan Feng, Jianxi Chen, and Cheng Chen.
+\newblock Improving flash-based disk cache with lazy adaptive replacement.
+\newblock {\em Trans. Storage}, 12(2):8:1--8:24, February 2016.
+
+\end{thebibliography}

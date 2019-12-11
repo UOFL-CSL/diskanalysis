@@ -60,7 +60,7 @@ r2 = ax.bar(x + 0.35/2, trace, 0.35, label="Tracing Enabled")
 
 ax.set_title("Tracing Performance")
 ax.set_xticks(x)
-ax.set_xticklabels(['Bandwidth (MB/s)', 'IOPS'])
+ax.set_xticklabels(['Bandwidth (KB/s)', 'IOPS'])
 ax.legend()
 
 fig.tight_layout()
