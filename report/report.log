@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2019/dev/Debian) (preloaded format=pdflatex 2019.9.28)  11 DEC 2019 13:53
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2019/dev/Debian) (preloaded format=pdflatex 2019.9.28)  11 DEC 2019 13:59
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -409,15 +409,15 @@ Package pdftex.def Info: ../analysis/workload3ms5.png  used on input line 189.
 
 ]) [23] (/home/marzullo/Desktop/DiskAnalysis/report/report.aux) ) 
 Here is how much of TeX's memory you used:
- 3424 strings out of 494561
- 56009 string characters out of 6177454
- 101650 words of memory out of 5000000
- 7018 multiletter control sequences out of 15000+600000
+ 3425 strings out of 494561
+ 56013 string characters out of 6177454
+ 101653 words of memory out of 5000000
+ 7019 multiletter control sequences out of 15000+600000
  12840 words of font info for 31 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 39i,14n,37p,2067b,276s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 39i,14n,37p,2088b,276s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/libertine/lbtn_kijugd.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/libertine/lbtn_tk3eej.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/libertine/lbtn_lyu3x3.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/libertine/lbtn_oexx6f.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/libertine/LinLibertineT.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/libertine/LinLibertineTB.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/libertine/LinLibertineTI.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb>
-Output written on /home/marzullo/Desktop/DiskAnalysis/report/report.pdf (30 pages, 565751 bytes).
+Output written on /home/marzullo/Desktop/DiskAnalysis/report/report.pdf (30 pages, 566235 bytes).
 PDF statistics:
  145 PDF objects out of 1000 (max. 8388607)
  89 compressed objects within 1 object stream

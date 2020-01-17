@@ -47,4 +47,12 @@ Sai Huang, Qingsong Wei, Dan Feng, Jianxi Chen, and Cheng Chen.
 \newblock Improving flash-based disk cache with lazy adaptive replacement.
 \newblock {\em Trans. Storage}, 12(2):8:1--8:24, February 2016.
 
+\bibitem{2Q}
+Theodore Johnson and Dennis Shasha.
+\newblock 2q: A low overhead high performance buffer management replacement
+  algorithm.
+\newblock In {\em Proceedings of the 20th International Conference on Very
+  Large Data Bases}, VLDB '94, pages 439--450, San Francisco, CA, USA, 1994.
+  Morgan Kaufmann Publishers Inc.
+
 \end{thebibliography}
