@@ -82,6 +82,19 @@ fn write_traces(traces: &Vec<blk_io_trace>) -> std::io::Result<()> {
     Ok(())
 }
 
+fn write_traces_text(traces: &Vec<blk_io_trace>) -> std::io::Result<()> {
+    let mut file = std::fs::File::create("replay.txt")?;
+
+    for trace in traces.iter() {
+        for i in 0..(trace.bytes>>10) {
+            write!(file, "{} ", (trace.sector+(i as u64)).to_string())?;
+        }
+        write!(file, "\n")?;
+    }
+
+    Ok(())
+}
+
 fn generate_traces(config: &replay_configuration) -> Vec::<blk_io_trace> {
     let mut traces = Vec::<blk_io_trace>::new();
 
@@ -194,6 +207,7 @@ fn main() {
     let traces = generate_traces(&config);
 
     let _ret = write_traces(&traces);
+    let _ret2 = write_traces_text(&traces);
 
     println!("Wrote workload to replay.bin");
 }
