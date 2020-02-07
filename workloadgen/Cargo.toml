@@ -1,5 +1,5 @@
 [package]
-name = "rst"
+name = "workloadgen"
 version = "0.1.0"
 authors = ["Michael Marzullo <michaelt.marzullo@gmail.com>"]
 edition = "2018"
