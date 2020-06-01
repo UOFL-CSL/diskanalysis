@@ -1,4 +1,4 @@
-# DiskAnalysis
+# Online Disk I/O Analysis
 
 This repository provides algorithms and tools developed to aid in the tracing and block pair correlation analysis for the purpose of optimizing state of the art storage devices.
 
